@@ -1,0 +1,13 @@
+tracker: "jsonl"
+postgres:
+  url: "postgresql+asyncpg://postgres:mysecretpassword@localhost:5432/postgres"
+jsonl:
+  file_path: "./conversation_events.jsonl"
+channels:
+  - type: webhook
+    name: webhook  # optional, if not specified, it will default to type value
+    token: "secret-token"
+    url: ""  # URL to send bot events to
+  # - type: channels.MyCustomChannel
+  #   param1: "value1"
+  #   param2: "value2"

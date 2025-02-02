@@ -1,0 +1,10 @@
+{"conv_id": "terminal-session", "event": {"type": "user", "text": "hi", "payload": {}, "created_at": "2025-02-02T19:05:16.219252"}}
+{"conv_id": "terminal-session", "event": {"type": "bot", "text": "Echo: hi", "payload": {}, "created_at": "2025-02-02T19:05:16.219411"}}
+{"conv_id": "terminal-session", "event": {"type": "user", "text": "yo", "payload": {}, "created_at": "2025-02-02T19:05:18.735347"}}
+{"conv_id": "terminal-session", "event": {"type": "bot", "text": "Echo: yo", "payload": {}, "created_at": "2025-02-02T19:05:18.735489"}}
+{"conv_id": "terminal-session", "event": {"type": "user", "text": "hi", "payload": {}, "created_at": "2025-02-02T19:05:52.168077"}}
+{"conv_id": "terminal-session", "event": {"type": "bot", "text": "Echo: hi", "payload": {}, "created_at": "2025-02-02T19:05:52.168222"}}
+{"conv_id": "terminal-session", "event": {"type": "user", "text": "hello", "payload": {}, "created_at": "2025-02-02T19:05:54.244703"}}
+{"conv_id": "terminal-session", "event": {"type": "bot", "text": "Hi there!", "payload": {}, "created_at": "2025-02-02T19:05:54.244846"}}
+{"conv_id": "terminal-session", "event": {"type": "user", "text": "wow", "payload": {}, "created_at": "2025-02-02T19:06:00.781887"}}
+{"conv_id": "terminal-session", "event": {"type": "bot", "text": "Echo: wow", "payload": {}, "created_at": "2025-02-02T19:06:00.782028"}}

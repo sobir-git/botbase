@@ -1,0 +1,50 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Caches
+.litellm_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Data
+data/
+
+# ENV
+.env/
+.env
+
+# Build directories
+build/
+dist/
+*.egg-info/
+
+# Trash
+.trash
+
+# Development
+.python-version
+.windsurfrules
+TODO.md
