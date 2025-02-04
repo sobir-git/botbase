@@ -46,7 +46,7 @@ def _load_and_register_channels():
         if not channel_instance:
             continue
 
-        app.include_router(channel_instance.router)
+        channel_instance.register_routes(app)
         logger.info(f"Channel {chan_cfg.name}:{chan_cfg.type} registered")
 
 

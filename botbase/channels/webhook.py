@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 
 import aiohttp
-from fastapi import BackgroundTasks, Depends, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from botbase.channels.base import BaseChannel
@@ -25,7 +25,7 @@ class WebhookChannel(BaseChannel):
         self.token = token
         self.url = url
 
-    def register_routes(self, app):
+    def register_routes(self, app: FastAPI):
         app.include_router(self.router)
         logger.info(f"Routes registered for channel: {self.name}")
 

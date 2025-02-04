@@ -1,4 +1,4 @@
-tracker: sqlite
+tracker: jsonl
 sqlite:
   db_path: "./data.sqlite"
 jsonl:
@@ -8,6 +8,9 @@ channels:
     name: webhook  # optional, if not specified, it will default to type value
     token: "secret-token"
     url: ""  # URL to send bot events to
+  - type: telegram
+    name: telegram
+    token: ${TELEGRAM_BOT_TOKEN}
   # - type: channels.MyCustomChannel
   #   param1: "value1"
   #   param2: "value2"
