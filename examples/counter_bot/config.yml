@@ -1,6 +1,6 @@
-tracker: "jsonl"
-postgres:
-  url: "postgresql+asyncpg://postgres:mysecretpassword@localhost:5432/postgres"
+tracker: sqlite
+sqlite:
+  db_path: "./data.sqlite"
 jsonl:
   file_path: "./conversation_events.jsonl"
 channels:

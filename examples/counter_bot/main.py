@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 async def handle_greet(tracker: ConversationTracker):
     last = tracker.last_user_message()
     if last and last.text.lower() in ["hello", "hi", "hey"]:
-        first_greeting = not tracker.slots.get("greeted", False)
+        first_greeting = not tracker.get_slot("greeted", False)
         if first_greeting:
             tracker.send_bot_message("Hi!", metadata={"first_greeting": True})
         else:
@@ -29,11 +29,11 @@ async def handle_counter(tracker: ConversationTracker):
             for i in range(1, count + 1):
                 tracker.send_bot_message(f"Counting: {i}")
                 if i != count:
-                    await asyncio.sleep(1)  # <-- Non-blocking sleep!
+                    await asyncio.sleep(1)  # non-blocking sleep
         except ValueError:
             tracker.send_bot_message("Please provide a valid number after 'count'.")
 
 
 if __name__ == "__main__":
-    # Start the server
+    # Start the server in interactive mode (for example purposes)
     botapi.runserver(host="0.0.0.0", port=8000)

@@ -33,7 +33,7 @@ poetry install
 1. Create a `config.yml` file:
 
 ```yaml
-tracker: "jsonl"
+tracker: "jsonl"  # or "sqlite"
 jsonl:
   file_path: "./conversation_events.jsonl"
 channels:

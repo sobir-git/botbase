@@ -50,7 +50,7 @@ class WebhookChannel(BaseChannel):
             return {"error": "No text provided in the request."}
 
         logger.info(f"Received message for conversation: {conv_id}")
-        tracker = create_tracker(conv_id)
+        tracker = await create_tracker(conv_id)
 
         # Register a callback for this tracker that dispatches bot events immediately.
         # We use a lambda to capture the current tracker.

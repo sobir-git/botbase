@@ -14,17 +14,32 @@ class Event(BaseModel):
     type: str
     text: Optional[str] = None
     payload: Dict[str, Any] = {}
-    created_at: datetime.datetime = None
+    created_at: datetime.datetime
 
 
 class ConversationTracker(ABC):
     def __init__(self, conv_id: str = None):
         self.conv_id: str = conv_id or str(uuid.uuid4())
         self.events: List[Event] = []
-        self.slots: Dict[str, Any] = {}
+        self._slots: Dict[str, Any] = {}
         self._persisted_count: int = 0  # tracks the number of events already persisted
         self._event_callbacks: List[Callable[[Event], Any]] = []
         logger.debug(f"ConversationTracker initialized for conversation {self.conv_id}")
+
+    def get_slot(self, key: str, default: Any = None) -> Any:
+        """
+        Retrieve the value of a slot by key.
+        """
+        return self._slots.get(key, default)
+
+    def set_slot(self, key: str, value: Any):
+        """
+        Update a slot value and add a slot event.
+        """
+        self._slots[key] = value
+        slot_event = Event(type="slot", payload={key: value}, created_at=datetime.datetime.utcnow())
+        self.add_event(slot_event)
+        logger.debug(f"Slot '{key}' set to {value} for conversation {self.conv_id}")
 
     def register_callback(self, callback: Callable[[Event], Any]):
         """Register a callback to be called whenever a new event is added."""
@@ -41,14 +56,13 @@ class ConversationTracker(ABC):
             if asyncio.iscoroutine(result):
                 asyncio.create_task(result)
 
-    def set_slot(self, key: str, value: Any):
-        self.slots[key] = value
-        slot_event = Event(type="slot", payload={key: value}, created_at=datetime.datetime.utcnow())
-        self.add_event(slot_event)
-        logger.debug(f"Slot '{key}' set to {value} for conversation {self.conv_id}")
-
     def send_bot_message(self, text: str, metadata: Dict[str, Any] = None):
-        bot_event = Event(type="bot", text=text, payload=metadata or {}, created_at=datetime.datetime.utcnow())
+        bot_event = Event(
+            type="bot",
+            text=text,
+            payload=metadata or {},
+            created_at=datetime.datetime.utcnow(),
+        )
         self.add_event(bot_event)
         logger.info(f"Bot message added for conversation {self.conv_id}: {text}")
 
@@ -62,6 +76,6 @@ class ConversationTracker(ABC):
     @abstractmethod
     async def persist(self):
         """
-        Persist only new events (since last persist) to the chosen storage.
+        Persist only new events (since last persist) to storage.
         """
         pass

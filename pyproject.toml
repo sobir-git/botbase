@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "botbase"
-version = "0.3.0"
+version = "0.4.0"
 description = "A lightweight, async-first chatbot framework with conversation persistence and event handling."
 authors = ["Sobir Bobiev <sobir.bobiev@gmail.com>"]
 license = "MIT"
@@ -19,6 +19,7 @@ python-dotenv = "^1.0.1"
 PyYAML = "^6.0.2"
 prompt-toolkit = "^3.0.50"
 sqlalchemy = {version = "^2.0.37", extras = ["asyncio"]}
+aiosqlite = "^0.21.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

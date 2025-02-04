@@ -16,12 +16,8 @@ class JSONLConfig(BaseModel):
     file_path: str = "./conversation_events.jsonl"
 
 
-class AppConfig(BaseModel):
-    tracker: str = "jsonl"  # Options: "postgresql" or "jsonl"
-    postgres: PostgresConfig = PostgresConfig()
-    jsonl: JSONLConfig = JSONLConfig()
-    # List of channel configurations
-    channels: List["ChannelConfig"] = Field(default_factory=list)
+class SqliteTrackerConfig(BaseModel):
+    db_path: str = "./conversation_events.db"
 
 
 # Use a dynamic model that allows arbitrary extra fields.
@@ -46,6 +42,15 @@ class ChannelConfig(BaseModel):
         super().__init__(type=type, name=name, arguments=arguments)
 
 
+class AppConfig(BaseModel):
+    tracker: str = "jsonl"  # Options: "postgresql" or "jsonl"
+    postgres: PostgresConfig = PostgresConfig()
+    jsonl: JSONLConfig = JSONLConfig()
+    sqlite: SqliteTrackerConfig = SqliteTrackerConfig()
+    # List of channel configurations
+    channels: List["ChannelConfig"] = Field(default_factory=list)
+
+
 # Allow self-referencing models.
 AppConfig.model_rebuild()
 
@@ -55,7 +60,7 @@ def load_config():
     if os.path.exists(config_file):
         logger.info(f"Loading configuration from {config_file}")
         with open(config_file, "r") as f:
-            data = yaml.safe_load(f)
+            data = yaml.safe_load(f) or {}
         return AppConfig(**data)
     logger.warning(f"Config file {config_file} not found. Using default configuration.")
     return AppConfig()
