@@ -1,11 +1,33 @@
 import logging
 import os
+import re
 from typing import Any, Dict, List
 
 import yaml
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+# Regular expression to match ${VAR_NAME} patterns
+env_var_pattern = re.compile(r"\$\{([^}^{]+)\}")
+
+
+def env_var_constructor(loader, node):
+    """
+    Extracts the environment variable from the node's value.
+    """
+    value = loader.construct_scalar(node)
+    match = env_var_pattern.findall(value)  # Find all env variables in the value
+    if match:
+        full_value = value
+        for g in match:
+            full_value = full_value.replace(f"${{{g}}}", os.environ.get(g, g))
+        return full_value
+    return value
+
+
+yaml.SafeLoader.add_implicit_resolver("!env_var", env_var_pattern, None)
+yaml.SafeLoader.add_constructor("!env_var", env_var_constructor)
 
 
 class PostgresConfig(BaseModel):
@@ -43,12 +65,11 @@ class ChannelConfig(BaseModel):
 
 
 class AppConfig(BaseModel):
-    tracker: str = "jsonl"  # Options: "postgresql" or "jsonl"
+    tracker: str = "jsonl"  # Options: "postgresql", "jsonl", or "sqlite"
     postgres: PostgresConfig = PostgresConfig()
     jsonl: JSONLConfig = JSONLConfig()
     sqlite: SqliteTrackerConfig = SqliteTrackerConfig()
-    # List of channel configurations
-    channels: List["ChannelConfig"] = Field(default_factory=list)
+    channels: List[ChannelConfig] = Field(default_factory=list)
 
 
 # Allow self-referencing models.
