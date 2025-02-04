@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "botbase"
-version = "0.2.1"
+version = "0.3.0"
 description = "A lightweight, async-first chatbot framework with conversation persistence and event handling."
 authors = ["Sobir Bobiev <sobir.bobiev@gmail.com>"]
 license = "MIT"
