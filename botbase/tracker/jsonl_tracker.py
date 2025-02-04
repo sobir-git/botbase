@@ -67,7 +67,9 @@ class JSONLTracker(ConversationTracker):
                     # Use a default function to serialize datetime objects.
                     f.write(
                         json.dumps(
-                            record, default=lambda o: o.isoformat() if isinstance(o, datetime.datetime) else str(o)
+                            record,
+                            default=lambda o: o.isoformat() if isinstance(o, datetime.datetime) else str(o),
+                            ensure_ascii=False,
                         )
                         + "\n"
                     )
