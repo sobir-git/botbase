@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "botbase"
-version = "0.1.0"
+version = "0.2.0"
 description = "A lightweight, async-first chatbot framework with conversation persistence and event handling."
 authors = ["Sobir Bobiev <sobir.bobiev@gmail.com>"]
 license = "MIT"
@@ -28,6 +28,7 @@ pre-commit = "^4.1.0"
 pytest = "^8.3.4"
 pytest-asyncio = "^0.25.3"
 httpx = "^0.28.1"
+pytest-cov = "^6.0.0"
 
 [tool.poetry.scripts]
 chatbot = "botbase.botapi:runserver"

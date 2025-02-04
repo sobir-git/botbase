@@ -89,25 +89,37 @@ def _instantiate_channel(ChannelClass: type[BaseChannel], chan_cfg: ChannelConfi
 def runserver(**uvicorn_kwargs):
     """
     Run the server using Uvicorn with the provided keyword arguments.
-    If the '--interactive' flag is present in sys.argv, run the interactive terminal channel.
+    Handles CLI arguments for both interactive and server modes.
     """
-    import asyncio
+    import argparse
 
-    # Check if the user passed the terminal flag.
-    if "--interactive" in sys.argv:
-        # Remove the flag so that downstream code isn't confused.
-        sys.argv.remove("--interactive")
-        logger.info("Detected --interactive flag; starting interactive terminal channel.")
-        from botbase.channels.interactive import InteractiveChannel
+    parser = argparse.ArgumentParser(description="Run the bot in interactive or server mode")
+    parser.add_argument("--interactive", action="store_true", help="Run in interactive terminal mode")
+    parser.add_argument(
+        "--conv-id",
+        type=str,
+        default=None,
+        help="Specify a conversation ID for interactive mode. If not provided, a UUID will be generated.",
+    )
 
-        asyncio.run(InteractiveChannel().run())
+    # Parse only known args to allow additional uvicorn args
+    args, remaining_argv = parser.parse_known_args()
+
+    # Update sys.argv to only contain unparsed args
+    sys.argv[1:] = remaining_argv
+
+    if args.interactive:
+        logger.info("Starting interactive terminal channel")
+        from botbase.channels.interactive import run_interactive
+
+        run_interactive(conv_id=args.conv_id)
         return
 
-    # Otherwise, start the web server.
+    # Otherwise, start the web server
     import uvicorn
 
     logger.info("Running Uvicorn server...")
-    # Disable Uvicorn's default logging configuration so our logs are used.
+    # Disable Uvicorn's default logging configuration so our logs are used
     uvicorn_kwargs.setdefault("log_config", None)
 
     uvicorn.run("botbase.botapi:app", **uvicorn_kwargs)

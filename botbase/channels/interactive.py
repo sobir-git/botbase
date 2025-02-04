@@ -1,5 +1,8 @@
 import asyncio
 import datetime
+import logging
+import uuid
+from typing import Optional
 
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.styles import Style
@@ -7,6 +10,8 @@ from prompt_toolkit.styles import Style
 from botbase.events import handle_event
 from botbase.tracker.base import Event
 from botbase.tracker.factory import create_tracker
+
+logger = logging.getLogger(__name__)
 
 # Define a style dictionary for prompt_toolkit.
 # - 'prompt' will be used for the input prompt and user messages.
@@ -27,12 +32,20 @@ class InteractiveChannel:
     The user prompt and user messages appear in yellow, and bot messages appear in green.
     """
 
-    def __init__(self, conv_id: str = "interactive"):
-        # Create or load a conversation tracker.
+    def __init__(self, conv_id: Optional[str] = None):
+        # Generate UUID if no conv_id provided
+        if conv_id is None:
+            conv_id = str(uuid.uuid4())
+            logger.info(f"Generated new conversation ID: {conv_id}")
+
+        # Create or load a conversation tracker
         self.tracker = create_tracker(conv_id)
-        # Register a callback to display bot messages.
+        logger.info(f"Initialized interactive channel with conversation ID: {conv_id}")
+
+        # Register a callback to display bot messages
         self.tracker.register_callback(self.on_bot_event)
-        # Create a PromptSession with a styled prompt.
+
+        # Create a PromptSession with a styled prompt
         self.session = PromptSession(
             HTML("<prompt>You:</prompt> "),
             style=prompt_style,
@@ -86,9 +99,14 @@ class InteractiveChannel:
             await self.tracker.persist()
 
 
-def run_interactive():
-    """Run the interactive terminal channel."""
-    asyncio.run(InteractiveChannel().run())
+def run_interactive(conv_id: Optional[str] = None):
+    """Run the interactive terminal channel.
+
+    Args:
+        conv_id: Optional conversation ID. If not provided, a UUID will be generated.
+    """
+    channel = InteractiveChannel(conv_id=conv_id)
+    asyncio.run(channel.run())
 
 
 if __name__ == "__main__":

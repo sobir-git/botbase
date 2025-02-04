@@ -69,6 +69,9 @@ python main.py
 
 # Run in interactive mode (command-line interface)
 python main.py --interactive
+
+# Run in interactive mode with specific conversation ID
+python main.py --interactive --conv-id my-chat-1
 ```
 
 Alternatively, you can run it with Uvicorn:
@@ -93,7 +96,6 @@ You should get the following response:
 {"conv_id":"test-convo-123","status":"Message received."}
 ```
 
-
 ## Development
 
 ### Setup
@@ -108,20 +110,20 @@ You should get the following response:
    poetry run pre-commit install
    ```
 
-### Code Style
+### Code Quality
 
-This project uses several tools to maintain code quality:
+We use the following tools to maintain code quality:
 
 - **Black**: Code formatting
 - **isort**: Import sorting
 - **Ruff**: Fast Python linter
 - **pre-commit**: Automated code quality checks
 
-Run formatters manually:
+To run formatters manually:
 ```bash
 poetry run black .
 poetry run isort .
-poetry run ruff check --fix
+poetry run ruff check --fix .
 ```
 
 ### Testing
@@ -131,30 +133,34 @@ Run the test suite:
 poetry run pytest
 ```
 
-Or with coverage:
+For coverage report:
 ```bash
 poetry run pytest --cov=botbase
 ```
 
-## Publishing
+## Release Process
 
-For maintainers only:
+For maintainers:
 
-1. **Build the package:**
+1. **Update version:**
+   ```bash
+   poetry version patch  # or minor, or major
+   ```
+
+2. **Build the package:**
    ```bash
    poetry build
    ```
 
-2. **Test the build locally:**
-   ```bash
-   pip install dist/*.whl
-   ```
-
-3. **Publish to GitHub:**
+3. **Create and push a new tag:**
    ```bash
    git tag v$(poetry version -s)
    git push origin v$(poetry version -s)
    ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## License
 
