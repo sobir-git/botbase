@@ -20,12 +20,13 @@ class TelegramChannel(BaseChannel):
     Instead of receiving webhooks, it polls Telegram's getUpdates endpoint and processes messages.
     """
 
-    def __init__(self, name: str, token: str, **kwargs):
+    def __init__(self, name: str, token: str, message_age_threshold: int = None, **kwargs):
         super().__init__(name)
         self.router = APIRouter()  # No HTTP routes needed for polling.
         self.token = token
         self.base_url = f"https://api.telegram.org/bot{self.token}"
         self.offset = 0  # Telegram API requires an offset to avoid duplicate messages.
+        self.message_age_threshold = message_age_threshold
         logger.info(f"TelegramChannel initialized with token ending with ...{self.token[-4:]}")
 
     def register_routes(self, app):
@@ -55,7 +56,7 @@ class TelegramChannel(BaseChannel):
                             self.offset = update["update_id"] + 1
                             logger.info(f"TelegramChannel: Received update: {update}")
                             if "message" in update:
-                                await self.process_update(update)
+                                asyncio.create_task(self.process_update(update))
                 except Exception as e:
                     logger.error(f"TelegramChannel: Error during polling: {e}", exc_info=True)
                 await asyncio.sleep(1)  # Pause before next poll to avoid hitting rate limits.
@@ -71,6 +72,14 @@ class TelegramChannel(BaseChannel):
         message = update.get("message")
         if not message:
             return
+
+        if self.message_age_threshold is not None and "date" in message:
+            message_age = datetime.datetime.now().timestamp() - message["date"]
+            if message_age > self.message_age_threshold:
+                logger.info(
+                    f"Skipping message from {message_age:.1f} seconds ago (threshold: {self.message_age_threshold}s)"
+                )
+                return
 
         chat = message.get("chat")
         if not chat:

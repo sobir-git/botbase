@@ -11,6 +11,7 @@ channels:
   - type: telegram
     name: telegram
     token: ${TELEGRAM_BOT_TOKEN}
+    message_age_threshold: 60  # Skip messages older than 60 seconds
   # - type: channels.MyCustomChannel
   #   param1: "value1"
   #   param2: "value2"
