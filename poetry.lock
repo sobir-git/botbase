@@ -799,6 +799,17 @@ colors = ["colorama"]
 plugins = ["setuptools"]
 
 [[package]]
+name = "md2tgmd"
+version = "0.1.9"
+description = "md2tgmd is a Markdown to Telegram-specific-markdown converter."
+optional = false
+python-versions = "*"
+files = [
+    {file = "md2tgmd-0.1.9-py3-none-any.whl", hash = "sha256:c45be0cb95c1c7c4920aafa74a26b3a8d613dd4eada98996d06f032141600e33"},
+    {file = "md2tgmd-0.1.9.tar.gz", hash = "sha256:160049768683807572d97b3b09134357316aa4bbe5dba5aca67dd87518c410f2"},
+]
+
+[[package]]
 name = "multidict"
 version = "6.1.0"
 description = "multidict implementation"
@@ -1717,5 +1728,5 @@ propcache = ">=0.2.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.9"
-content-hash = "95882fe6d50ceb300e58c86271b2576562a088fb1f457f25b905b6ae8fddae81"
+python-versions = ">=3.9,<4.0"
+content-hash = "f64f9949da005c3fa60a472a5f08401454d48d66fdb61cbcbc9ca89595a91e4a"

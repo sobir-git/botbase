@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "botbase"
-version = "0.6.0"
+version = "0.6.1"
 description = "A lightweight, async-first chatbot framework with conversation persistence and event handling."
 authors = ["Sobir Bobiev <sobir.bobiev@gmail.com>"]
 license = "MIT"
@@ -9,7 +9,7 @@ repository = "https://github.com/sobir-git/botbase"
 packages = [{include = "botbase"}]
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.9,<4.0"
 fastapi = "^0.115.8"
 uvicorn = "^0.34.0"
 aiohttp = "^3.11.11"
@@ -20,6 +20,7 @@ PyYAML = "^6.0.2"
 prompt-toolkit = "^3.0.50"
 sqlalchemy = {version = "^2.0.37", extras = ["asyncio"]}
 aiosqlite = "^0.21.0"
+md2tgmd = "^0.1.9"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

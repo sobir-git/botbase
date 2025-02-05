@@ -4,6 +4,7 @@ import logging
 
 import aiohttp
 from fastapi import APIRouter
+from md2tgmd import escape
 
 from botbase.channels.base import BaseChannel
 from botbase.events import handle_event
@@ -109,16 +110,39 @@ class TelegramChannel(BaseChannel):
         if event.type == "bot" and event.text:
             await self.send_message(chat_id, event.text)
 
+    @staticmethod
+    def adapt_markdown(text: str) -> str:
+        """
+        Converts markdown text to Telegram's MarkdownV2 format.
+        Uses md2tgmd for reliable conversion.
+
+        Args:
+            text: Text with markdown formatting
+
+        Returns:
+            Text formatted for Telegram MarkdownV2
+        """
+        return escape(text)
+
     async def send_message(self, chat_id: int, text: str):
         """
         Sends a message back to Telegram using the sendMessage API.
+        Converts markdown formatting to Telegram's MarkdownV2 format.
+
+        Note:
+            The text is assumed to be in markdown format and will be
+            converted to Telegram's MarkdownV2 format using telegramify-markdown.
         """
+        telegram_text = self.adapt_markdown(text)
+
         async with aiohttp.ClientSession() as session:
-            payload = {"chat_id": chat_id, "text": text}
+            payload = {"chat_id": chat_id, "text": telegram_text, "parse_mode": "MarkdownV2"}
             async with session.post(f"{self.base_url}/sendMessage", json=payload) as resp:
                 result = await resp.json()
                 if not result.get("ok"):
                     logger.error(f"TelegramChannel: Failed to send message to chat {chat_id}: {result}")
+                    logger.debug(f"Original markdown: {text}")
+                    logger.debug(f"Telegram MarkdownV2: {telegram_text}")
                 return result
 
     async def process_request(self, request, background_tasks):
