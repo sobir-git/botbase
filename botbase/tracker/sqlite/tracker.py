@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from typing import List, Tuple
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Set aiosqlite logger to WARNING to suppress DEBUG logs.
 logging.getLogger("aiosqlite").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class SQLiteTracker(ConversationTracker):
@@ -49,6 +51,10 @@ class SQLiteTracker(ConversationTracker):
         """
         Initialize the tracker by obtaining the shared session factory and loading
         conversation history from SQLite.
+
+        This method loads all events from the database, finds the most recent session event,
+        and then rebuilds the in-memory state (events and slots) using only events from the
+        current session.
         """
         logger.debug("Initializing SQLiteTracker: loading conversation history using shared session")
         # Obtain the shared session factory (and initialize the database if needed).
@@ -60,17 +66,33 @@ class SQLiteTracker(ConversationTracker):
                 .where(ConversationEvent.conv_id == self.conv_id)
                 .order_by(ConversationEvent.created_at)
             )
-            events = result.scalars().all()
-            for row in events:
-                # Rebuild the Event from the stored payload.
-                event_obj = Event(**row.payload)
+            rows = result.scalars().all()
+
+            loaded_events: List[Tuple[Event, str]] = []
+            # Build a list of tuples: (parsed event, stored event type)
+            for row in rows:
+                try:
+                    # Parse the stored payload into an Event instance.
+                    event_obj = Event(**row.payload)
+                    loaded_events.append((event_obj, row.event_type))
+                except Exception as e:
+                    logger.error("Error parsing event from payload", exc_info=e)
+
+            # Find the index of the last session event (if any).
+            last_session_index = self._get_last_session_index([e for (e, _) in loaded_events])
+            if last_session_index >= 0:
+                # Only keep events from the last session event onward.
+                loaded_events = loaded_events[last_session_index:]
+            # Else, if no session event was found, all events are part of the current session.
+
+            # Rebuild in-memory events and slots from the filtered list.
+            for event_obj, _ in loaded_events:
                 self.events.append(event_obj)
-                # For slot events, update the tracker's slots.
-                if row.event_type == "slot":
-                    # Instead of expecting a nested key, update directly.
-                    self._slots.update(row.payload["payload"])
-            self._persisted_count = len(events)
-            logger.info(f"Loaded {len(events)} historical events for conversation {self.conv_id}")
+                if event_obj.type == "slot":
+                    # Update slots with the data from slot events.
+                    self._slots.update(event_obj.payload)
+            self._persisted_count = len(self.events)
+            logger.info(f"Loaded {len(self.events)} historical events for conversation {self.conv_id}")
 
     async def persist(self) -> None:
         """
@@ -97,12 +119,3 @@ class SQLiteTracker(ConversationTracker):
             await session.commit()
         self._persisted_count = len(self.events)
         logger.info("Persistence to SQLite complete")
-
-    def update_slot(self, name: str, value: str) -> None:
-        """
-        Update a slot value and add a slot event.
-        (This method now simply calls set_slot from the base.)
-        """
-        self.set_slot(name, value)
-
-    # No public slots property – users must call get_slot().

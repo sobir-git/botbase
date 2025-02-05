@@ -34,6 +34,14 @@ async def handle_counter(tracker: ConversationTracker):
             tracker.send_bot_message("Please provide a valid number after 'count'.")
 
 
+@handler()
+async def handle_reset(tracker: ConversationTracker):
+    last = tracker.last_user_message()
+    if last and last.text.lower() == "/reset":
+        tracker.renew_session()
+        tracker.send_bot_message("Session reset. Start a new conversation.")
+
+
 if __name__ == "__main__":
     # Start the server in interactive mode (for example purposes)
     botapi.runserver(host="0.0.0.0", port=8000)

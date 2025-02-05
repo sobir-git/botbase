@@ -9,6 +9,9 @@ from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
+# Use "session" as the event type indicating a new session.
+SESSION_EVENT_TYPE = "session"
+
 
 class Event(BaseModel):
     type: str
@@ -25,6 +28,18 @@ class ConversationTracker(ABC):
         self._persisted_count: int = 0  # tracks the number of events already persisted
         self._event_callbacks: List[Callable[[Event], Any]] = []
         logger.debug(f"ConversationTracker initialized for conversation {self.conv_id}")
+
+    @staticmethod
+    def _get_last_session_index(events: List[Event]) -> int:
+        """
+        Find the index of the last session event.
+        If no session event exists, return -1 so that all events are considered.
+        """
+        idx = -1
+        for i, e in enumerate(events):
+            if e.type == SESSION_EVENT_TYPE:
+                idx = i
+        return idx
 
     def get_slot(self, key: str, default: Any = None) -> Any:
         """
@@ -72,6 +87,23 @@ class ConversationTracker(ABC):
                 return event
         logger.debug(f"No user message found for conversation {self.conv_id}")
         return None
+
+    def renew_session(self):
+        """
+        Start a new session. This method clears any previous session data.
+        A special session event is added so that persistence still records the fact
+        that a new session has started.
+        """
+        session_event = Event(
+            type=SESSION_EVENT_TYPE,
+            payload={},
+            created_at=datetime.datetime.utcnow(),
+        )
+        # Discard all events from earlier sessions.
+        self.events = [session_event]
+        self._slots = {}
+        self._persisted_count = 0
+        logger.info(f"Renewed session for conversation {self.conv_id}")
 
     @abstractmethod
     async def persist(self):
