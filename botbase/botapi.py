@@ -1,5 +1,6 @@
 import logging
 import sys
+from contextlib import asynccontextmanager
 from importlib import import_module
 
 from fastapi import FastAPI
@@ -10,11 +11,50 @@ from botbase.config import ChannelConfig, config
 
 logger = logging.getLogger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI):
+    # Executed on startup
+    logger.info("Registered routes at startup:")
+    for route_idx, route in enumerate(fastapi_app.routes):
+        logger.info(f"Route #{route_idx}:")
+        if hasattr(route, "path"):
+            logger.info(f"  Name: {getattr(route, 'name', 'N/A')}")
+            logger.info(f"  Path: {route.path}")
+            logger.info(f"  Methods: {getattr(route, 'methods', 'N/A')}")
+            if hasattr(route, "endpoint"):
+                logger.info(
+                    f"  Endpoint: {route.endpoint.__name__ if hasattr(route.endpoint, '__name__') else route.endpoint}"
+                )
+        elif hasattr(route, "routes"):  # For APIRouters or mounted sub-applications
+            logger.info(f"  Router/Mount at prefix: {getattr(route, 'prefix', getattr(route, 'path_format', 'N/A'))}")
+            for sub_route_idx, sub_route in enumerate(route.routes):
+                if hasattr(sub_route, "path"):
+                    logger.info(f"    Sub-route #{sub_route_idx}:")
+                    logger.info(f"      Name: {getattr(sub_route, 'name', 'N/A')}")
+                    logger.info(f"      Path: {sub_route.path}")  # This path is relative to the router's prefix
+                    logger.info(f"      Full Path (estimated): {getattr(route, 'prefix', '')}{sub_route.path}")
+                    logger.info(f"      Methods: {getattr(sub_route, 'methods', 'N/A')}")
+                    if hasattr(sub_route, "endpoint"):
+                        endpoint = (
+                            sub_route.endpoint.__name__
+                            if hasattr(sub_route.endpoint, "__name__")
+                            else sub_route.endpoint
+                        )
+                        logger.info(f"      Endpoint: {endpoint}")
+        else:
+            logger.info(f"  Unknown route type: {type(route)}")
+        logger.info("-" * 20)
+
+    yield  # This is where the app runs
+
+
 app = FastAPI(
     title="Ultimate Chatbot Framework",
     description=(
         "An async chatbot framework with conversation persistence, event handling, and flexible channel routing."
     ),
+    lifespan=lifespan,
 )
 
 

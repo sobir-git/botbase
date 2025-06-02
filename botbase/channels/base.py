@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Request
 class BaseChannel(ABC):
     def __init__(self, name: str):
         self.name = name
-        self.router = APIRouter(prefix=f"/webhook/{self.name}")
+        self.router = APIRouter(prefix=f"/channels/{self.name}")
 
     @abstractmethod
     def register_routes(self, app):
