@@ -32,6 +32,9 @@ Thumbs.db
 # Data
 data/
 
+# Conversation events
+conversation_events.jsonl
+
 # ENV
 .env/
 .env

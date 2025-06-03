@@ -1,0 +1,8 @@
+tracker: jsonl
+jsonl:
+  file_path: ./conversation_events.jsonl
+channels:
+  - type: channels.jivo.JivoChatChannel
+    name: my_jivo_bot
+    provider_id: provider001
+    shared_token: jivobottoken001
