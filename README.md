@@ -158,6 +158,10 @@ For maintainers:
    git push origin v$(poetry version -s)
    ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a list of notable changes to this project.
+
 ## License
 
 [MIT License](LICENSE)
