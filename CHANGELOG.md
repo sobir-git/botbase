@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2025-06-10
+
+### Refactored
+- Changed 'channel' key to '_channel' in event payload for internal metadata consistency.
+
+## [0.9.0] - 2025-06-10
+
+### Added
+- Channel name metadata to every incoming message event payload.
+- Explicit lifecycle management for channel background tasks (Telegram polling fix).
+- New tests to verify channel name in event payload.
+
+### Fixed
+- Deprecated `datetime.datetime.utcnow()` calls replaced with timezone-aware `datetime.datetime.now(datetime.timezone.utc)`.
+
+### Refactored
+- `botbase/botapi.py` lifespan function to reduce complexity.
+
+### Changed
+- `pytest-asyncio` configuration in `pyproject.toml` to suppress deprecation warnings.
+
 ## [0.8.0] - 2025-06-03
 
 ### Added
