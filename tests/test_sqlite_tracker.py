@@ -58,9 +58,9 @@ async def test_sqlite_tracker_persist_and_load(sqlite_config: SqliteTrackerConfi
     conv_id = str(uuid.uuid4())
     tracker = await SQLiteTracker.create(sqlite_config, conv_id)
     test_events = [
-        Event(type="message", payload={"text": "Hello"}, created_at=datetime.datetime.utcnow()),
-        Event(type="slot", payload={"name": "value"}, created_at=datetime.datetime.utcnow()),
-        Event(type="message", payload={"text": "Goodbye"}, created_at=datetime.datetime.utcnow()),
+        Event(type="message", payload={"text": "Hello"}, created_at=datetime.datetime.now(datetime.timezone.utc)),
+        Event(type="slot", payload={"name": "value"}, created_at=datetime.datetime.now(datetime.timezone.utc)),
+        Event(type="message", payload={"text": "Goodbye"}, created_at=datetime.datetime.now(datetime.timezone.utc)),
     ]
     for event in test_events:
         tracker.add_event(event)
@@ -96,7 +96,7 @@ async def test_sqlite_tracker_json_serialization(sqlite_config: SqliteTrackerCon
         "null": None,
         "bool": True,
     }
-    event = Event(type="complex", payload=complex_payload, created_at=datetime.datetime.utcnow())
+    event = Event(type="complex", payload=complex_payload, created_at=datetime.datetime.now(datetime.timezone.utc))
     tracker.add_event(event)
     await tracker.persist()
     new_tracker = await SQLiteTracker.create(sqlite_config, conv_id)
@@ -112,7 +112,9 @@ async def test_sqlite_tracker_concurrent_access(sqlite_config: SqliteTrackerConf
     async def add_events(count: int):
         tracker = await SQLiteTracker.create(sqlite_config, conv_id)
         for i in range(count):
-            tracker.add_event(Event(type="message", payload={"count": i}, created_at=datetime.datetime.utcnow()))
+            tracker.add_event(
+                Event(type="message", payload={"count": i}, created_at=datetime.datetime.now(datetime.timezone.utc))
+            )
         await tracker.persist()
 
     await asyncio.gather(

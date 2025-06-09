@@ -1,4 +1,4 @@
-import asyncio
+import datetime
 import importlib
 import sys
 
@@ -71,7 +71,7 @@ async def test_last_user_message(tmp_path):
         type="user",
         text="User message",
         payload={},
-        created_at=await asyncio.to_thread(lambda: __import__("datetime").datetime.utcnow()),
+        created_at=datetime.datetime.now(datetime.timezone.utc),
     )
     tracker.add_event(user_event)
     last_user = tracker.last_user_message()
@@ -110,7 +110,7 @@ async def test_persistence_jsonl_tracker(tmp_path):
             type="user",
             text="Test persistence",
             payload={},
-            created_at=await asyncio.to_thread(lambda: __import__("datetime").datetime.utcnow()),
+            created_at=datetime.datetime.now(datetime.timezone.utc),
         )
     )
     await tracker1.persist()
@@ -146,7 +146,7 @@ async def test_handle_event():
                 type="user",
                 text="dummy",
                 payload={},
-                created_at=await asyncio.to_thread(lambda: __import__("datetime").datetime.utcnow()),
+                created_at=datetime.datetime.now(datetime.timezone.utc),
             )
         )
         await handle_event(tracker)
@@ -197,7 +197,7 @@ async def test_webhook_channel_process_request(tmp_path, monkeypatch):
     client = TestClient(botapi.app)
     payload = {"conv_id": "test_conv", "text": "hello"}
     headers = {"Authorization": "Bearer test-secret"}
-    response = client.post("/webhook/webhook/", json=payload, headers=headers)
+    response = client.post("/channels/webhook/", json=payload, headers=headers)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
     data = response.json()
     assert "conv_id" in data, f"Response did not contain conv_id: {data}"

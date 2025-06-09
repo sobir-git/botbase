@@ -60,7 +60,7 @@ class WebhookChannel(BaseChannel):
         user_event = Event(
             type="user",
             text=text,
-            created_at=datetime.datetime.utcnow(),
+            created_at=datetime.datetime.now(datetime.timezone.utc),
             payload=data,
         )
         tracker.add_event(user_event)

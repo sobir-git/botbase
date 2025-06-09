@@ -28,18 +28,15 @@ class TelegramChannel(BaseChannel):
         self.offset = 0  # Telegram API requires an offset to avoid duplicate messages.
         self.message_age_threshold = message_age_threshold
         logger.info(f"TelegramChannel initialized with token ending with ...{self.token[-4:]}")
+        self._polling_task = None
 
     def register_routes(self, app):
         """
         Instead of registering HTTP routes, we register a startup event that launches the long-polling loop.
         """
 
-        @app.on_event("startup")
-        async def start_polling():
-            logger.info("TelegramChannel: Starting long polling for Telegram updates")
-            asyncio.create_task(self.poll_updates())
-
-        logger.info("TelegramChannel: Registered startup event for polling.")
+        # Startup event is now handled by get_startup_tasks and botapi.py lifespan
+        logger.info("TelegramChannel: Routes registered. Polling will be initiated by botapi lifespan.")
 
     async def poll_updates(self):
         """
@@ -60,6 +57,7 @@ class TelegramChannel(BaseChannel):
                 except Exception as e:
                     logger.error(f"TelegramChannel: Error during polling: {e}", exc_info=True)
                 await asyncio.sleep(1)  # Pause before next poll to avoid hitting rate limits.
+            logger.info("TelegramChannel: Polling loop ended.")  # Should not happen in normal operation
 
     async def process_update(self, update: dict):
         """
@@ -160,8 +158,25 @@ class TelegramChannel(BaseChannel):
         """
         pass
 
+    async def start_polling_task(self):
+        logger.info("TelegramChannel: Starting long polling for Telegram updates via start_polling_task")
+        # Create the task, but also store a reference if we need to manage it (e.g., cancel on shutdown)
+        self._polling_task = asyncio.create_task(self.poll_updates())
+
+    def get_startup_tasks(self):
+        """
+        Return the polling task to be run at application startup.
+        """
+        return [self.start_polling_task]
+
     def close(self):
         """
         Any necessary cleanup can be implemented here.
+        Attempt to cancel the polling task if it's running.
         """
+        if self._polling_task and not self._polling_task.done():
+            logger.info("TelegramChannel: Attempting to cancel polling task.")
+            self._polling_task.cancel()
+        else:
+            logger.info("TelegramChannel: No active polling task to cancel or task already done.")
         pass

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import sys
 from contextlib import asynccontextmanager
@@ -11,10 +12,10 @@ from botbase.config import ChannelConfig, config
 
 logger = logging.getLogger(__name__)
 
+_registered_channels: list[BaseChannel] = []
 
-@asynccontextmanager
-async def lifespan(fastapi_app: FastAPI):
-    # Executed on startup
+
+def _log_registered_routes(fastapi_app: FastAPI):
     logger.info("Registered routes at startup:")
     for route_idx, route in enumerate(fastapi_app.routes):
         logger.info(f"Route #{route_idx}:")
@@ -46,7 +47,37 @@ async def lifespan(fastapi_app: FastAPI):
             logger.info(f"  Unknown route type: {type(route)}")
         logger.info("-" * 20)
 
+
+@asynccontextmanager
+async def lifespan(fastapi_app: FastAPI):
+    # Executed on startup
+    _log_registered_routes(fastapi_app)
+
+    # Run startup tasks from channels
+    logger.info("Executing channel startup tasks...")
+    for channel in _registered_channels:
+        try:
+            startup_tasks = channel.get_startup_tasks()
+            for task_coro in startup_tasks:
+                logger.info(
+                    f"Creating startup task for {channel.name}: {getattr(task_coro, '__name__', 'unknown_task')}"
+                )
+                asyncio.create_task(task_coro())
+        except Exception as e:
+            logger.error(f"Error getting or running startup tasks for channel {channel.name}: {e}", exc_info=True)
+    logger.info("Channel startup tasks initiated.")
+
     yield  # This is where the app runs
+
+    # Executed on shutdown
+    logger.info("Shutting down. Closing channels...")
+    for channel in _registered_channels:
+        try:
+            channel.close()
+            logger.info(f"Channel {channel.name} closed.")
+        except Exception as e:
+            logger.error(f"Error closing channel {channel.name}: {e}", exc_info=True)
+    logger.info("All channels closed.")
 
 
 app = FastAPI(
@@ -87,7 +118,8 @@ def _load_and_register_channels():
             continue
 
         channel_instance.register_routes(app)
-        logger.info(f"Channel {chan_cfg.name}:{chan_cfg.type} registered")
+        _registered_channels.append(channel_instance)
+        logger.info(f"Channel {chan_cfg.name}:{chan_cfg.type} registered and added to active list")
 
 
 def _get_channel_class(channel_type: str) -> type[BaseChannel]:

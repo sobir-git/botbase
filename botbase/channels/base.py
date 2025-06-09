@@ -28,3 +28,10 @@ class BaseChannel(ABC):
         Close the channel (e.g., flush pending messages). Non-blocking.
         """
         pass
+
+    def get_startup_tasks(self):
+        """
+        Return a list of async functions (coroutines) to be run at application startup.
+        These tasks will be executed by asyncio.create_task().
+        """
+        return []

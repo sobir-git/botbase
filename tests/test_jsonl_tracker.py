@@ -44,9 +44,9 @@ async def test_jsonl_tracker_persist_and_load(jsonl_config: JSONLConfig):
     conv_id = str(uuid.uuid4())
     tracker = await JSONLTracker.create(jsonl_config, conv_id)
     test_events = [
-        Event(type="message", payload={"text": "Hello"}, created_at=datetime.datetime.utcnow()),
-        Event(type="slot", payload={"greeted": True}, created_at=datetime.datetime.utcnow()),
-        Event(type="message", payload={"text": "Goodbye"}, created_at=datetime.datetime.utcnow()),
+        Event(type="message", payload={"text": "Hello"}, created_at=datetime.datetime.now(datetime.timezone.utc)),
+        Event(type="slot", payload={"greeted": True}, created_at=datetime.datetime.now(datetime.timezone.utc)),
+        Event(type="message", payload={"text": "Goodbye"}, created_at=datetime.datetime.now(datetime.timezone.utc)),
     ]
     for event in test_events:
         tracker.add_event(event)
@@ -83,7 +83,7 @@ async def test_jsonl_tracker_json_serialization(jsonl_config: JSONLConfig):
         "bool": True,
     }
     # Ensure created_at is provided (strict mode)
-    event = Event(type="complex", payload=complex_payload, created_at=datetime.datetime.utcnow())
+    event = Event(type="complex", payload=complex_payload, created_at=datetime.datetime.now(datetime.timezone.utc))
     tracker.add_event(event)
     await tracker.persist()
     new_tracker = await JSONLTracker.create(jsonl_config, conv_id)
@@ -101,7 +101,9 @@ async def test_jsonl_tracker_concurrent_access(jsonl_config: JSONLConfig):
         tracker = await JSONLTracker.create(jsonl_config, conv_id)
         for i in range(count):
             # Provide created_at strictly.
-            tracker.add_event(Event(type="message", payload={"count": i}, created_at=datetime.datetime.utcnow()))
+            tracker.add_event(
+                Event(type="message", payload={"count": i}, created_at=datetime.datetime.now(datetime.timezone.utc))
+            )
         await tracker.persist()
 
     await asyncio.gather(

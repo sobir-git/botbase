@@ -52,7 +52,7 @@ class ConversationTracker(ABC):
         Update a slot value and add a slot event.
         """
         self._slots[key] = value
-        slot_event = Event(type="slot", payload={key: value}, created_at=datetime.datetime.utcnow())
+        slot_event = Event(type="slot", payload={key: value}, created_at=datetime.datetime.now(datetime.timezone.utc))
         self.add_event(slot_event)
         logger.debug(f"Slot '{key}' set to {value} for conversation {self.conv_id}")
 
@@ -76,7 +76,7 @@ class ConversationTracker(ABC):
             type="bot",
             text=text,
             payload=metadata or {},
-            created_at=datetime.datetime.utcnow(),
+            created_at=datetime.datetime.now(datetime.timezone.utc),
         )
         self.add_event(bot_event)
         logger.info(f"Bot message added for conversation {self.conv_id}: {text}")
@@ -97,7 +97,7 @@ class ConversationTracker(ABC):
         session_event = Event(
             type=SESSION_EVENT_TYPE,
             payload={},
-            created_at=datetime.datetime.utcnow(),
+            created_at=datetime.datetime.now(datetime.timezone.utc),
         )
         # Discard all events from earlier sessions.
         self.events = [session_event]
