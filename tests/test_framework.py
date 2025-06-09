@@ -205,7 +205,7 @@ async def test_webhook_channel_process_request(tmp_path, monkeypatch):
     tracker = await create_tracker(conv_id="test_conv")
     last_event = tracker.last_user_message()
     assert last_event is not None
-    assert last_event.payload.get("channel") == "webhook"
+    assert last_event.payload.get("_channel") == "webhook"
     data = response.json()
     assert "conv_id" in data, f"Response did not contain conv_id: {data}"
     assert data.get("status") == "Message received."
@@ -305,7 +305,7 @@ async def test_telegram_channel_metadata(tmp_path, monkeypatch):
     tracker = await create_tracker(conv_id="123")  # conv_id is chat_id for telegram
     last_event = tracker.last_user_message()
     assert last_event is not None
-    assert last_event.payload.get("channel") == "telegram_channel"
+    assert last_event.payload.get("_channel") == "telegram_channel"
 
 
 # --- Test Database Configuration ---

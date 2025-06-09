@@ -57,15 +57,15 @@ class WebhookChannel(BaseChannel):
         tracker.register_callback(lambda event: self.on_tracker_event(event, tracker))
 
         # Warn if data has 'channel' field.
-        if "channel" in data:
-            logger.warning("Webhook request contains 'channel' field, which will be overwritten")
+        if "_channel" in data:
+            logger.warning("Webhook request contains '_channel' field, which will be overwritten")
 
         # Create and add a user event.
         user_event = Event(
             type="user",
             text=text,
             created_at=datetime.datetime.now(datetime.timezone.utc),
-            payload={**data, "channel": self.name},
+            payload={**data, "_channel": self.name},
         )
         tracker.add_event(user_event)
         logger.debug("User event added to tracker")
