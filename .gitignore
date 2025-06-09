@@ -28,6 +28,7 @@ Thumbs.db
 .litellm_cache/
 .ruff_cache/
 .pytest_cache/
+.coverage
 
 # Data
 data/
