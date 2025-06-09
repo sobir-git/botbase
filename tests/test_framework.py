@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from botbase import botapi, events
 from botbase.events import handle_event, handler
 from botbase.tracker.base import ConversationTracker, Event
+from botbase.tracker.factory import create_tracker
 
 # --- Test Configuration Loading ---
 
@@ -199,9 +200,112 @@ async def test_webhook_channel_process_request(tmp_path, monkeypatch):
     headers = {"Authorization": "Bearer test-secret"}
     response = client.post("/channels/webhook/", json=payload, headers=headers)
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+
+    # Verify that the channel name is in the event payload
+    tracker = await create_tracker(conv_id="test_conv")
+    last_event = tracker.last_user_message()
+    assert last_event is not None
+    assert last_event.payload.get("channel") == "webhook"
     data = response.json()
     assert "conv_id" in data, f"Response did not contain conv_id: {data}"
     assert data.get("status") == "Message received."
+
+
+@pytest.mark.asyncio
+async def test_telegram_channel_metadata(tmp_path, monkeypatch):
+    """
+    Test that TelegramChannel correctly adds the channel name to the event payload.
+    """
+    import importlib
+
+    import aiohttp
+
+    import botbase.botapi as botapi
+    import botbase.config as config_module
+    from botbase.channels.telegram import TelegramChannel
+
+    # Mock aiohttp to simulate Telegram API response
+    class MockResponse:
+        def __init__(self, json_data, status=200):
+            self._json_data = json_data
+            self.status = status
+
+        async def json(self):
+            return self._json_data
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+    async def mock_get(url, params=None):
+        if "getUpdates" in url:
+            return MockResponse(
+                {
+                    "ok": True,
+                    "result": [
+                        {
+                            "update_id": 12345,
+                            "message": {
+                                "message_id": 1,
+                                "from": {"id": 123, "is_bot": False, "first_name": "Test"},
+                                "chat": {"id": 123, "type": "private"},
+                                "date": int(datetime.datetime.now().timestamp()),
+                                "text": "/start",
+                            },
+                        }
+                    ],
+                }
+            )
+        return MockResponse({})
+
+    monkeypatch.setattr(aiohttp.ClientSession, "get", mock_get)
+
+    # Setup config for TelegramChannel
+    config_data = {
+        "tracker": "jsonl",
+        "jsonl": {"file_path": str(tmp_path / "test_events.jsonl")},
+        "channels": [{"type": "telegram", "name": "telegram_channel", "token": "test_token"}],
+    }
+    config_file = tmp_path / "config.yml"
+    config_file.write_text(yaml.dump(config_data))
+    monkeypatch.setenv("CONFIG_FILE", str(config_file))
+
+    importlib.reload(config_module)
+    importlib.reload(botapi)
+
+    # Initialize botapi to load channels
+    botapi.app = FastAPI(title="Test Chatbot")
+    botapi.init()
+
+    # Find the telegram channel instance
+    telegram_channel = None
+    for channel in botapi._registered_channels:
+        if isinstance(channel, TelegramChannel):
+            telegram_channel = channel
+            break
+    assert telegram_channel is not None
+
+    # Manually call process_update with a dummy update to trigger event creation
+    # In a real scenario, poll_updates would call process_update
+    dummy_update = {
+        "update_id": 12345,
+        "message": {
+            "message_id": 1,
+            "from": {"id": 123, "is_bot": False, "first_name": "Test"},
+            "chat": {"id": 123, "type": "private"},
+            "date": int(datetime.datetime.now().timestamp()),
+            "text": "/start",
+        },
+    }
+    await telegram_channel.process_update(dummy_update)
+
+    # Verify that the channel name is in the event payload
+    tracker = await create_tracker(conv_id="123")  # conv_id is chat_id for telegram
+    last_event = tracker.last_user_message()
+    assert last_event is not None
+    assert last_event.payload.get("channel") == "telegram_channel"
 
 
 # --- Test Database Configuration ---

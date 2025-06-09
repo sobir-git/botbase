@@ -100,8 +100,8 @@ class TelegramChannel(BaseChannel):
         user_event = Event(
             type="user",
             text=text,
-            payload=update,  # Store full update payload.
-            created_at=datetime.datetime.utcnow(),
+            payload={**update, "channel": self.name},
+            created_at=datetime.datetime.now(datetime.timezone.utc),
         )
         tracker.add_event(user_event)
 

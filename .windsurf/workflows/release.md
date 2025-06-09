@@ -6,6 +6,9 @@ description: Create a new release with version bump
 
 Perform these actions in sequence to create a new release:
 
+## 0. Check git status & stage & add necessary files
+
+
 ## 1. Run Quality Checks
 
 ```bash

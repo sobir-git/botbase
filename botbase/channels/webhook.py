@@ -56,12 +56,16 @@ class WebhookChannel(BaseChannel):
         # We use a lambda to capture the current tracker.
         tracker.register_callback(lambda event: self.on_tracker_event(event, tracker))
 
+        # Warn if data has 'channel' field.
+        if "channel" in data:
+            logger.warning("Webhook request contains 'channel' field, which will be overwritten")
+
         # Create and add a user event.
         user_event = Event(
             type="user",
             text=text,
             created_at=datetime.datetime.now(datetime.timezone.utc),
-            payload=data,
+            payload={**data, "channel": self.name},
         )
         tracker.add_event(user_event)
         logger.debug("User event added to tracker")
